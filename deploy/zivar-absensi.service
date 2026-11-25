@@ -1,0 +1,17 @@
+[Unit]
+Description=ZIVAR Absensi QR & RFID (Go)
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=smkn55jakarta
+Group=smkn55jakarta
+WorkingDirectory=/home/smkn55jakarta/zivar-absensi
+EnvironmentFile=/home/smkn55jakarta/zivar-absensi/.env
+ExecStart=/home/smkn55jakarta/zivar-absensi/zivar-absensi
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

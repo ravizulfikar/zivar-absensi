@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cetak Kartu QR Absensi Siswa</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <style>
+    .print-bar {
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+      padding: 20px;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    .qr-card {
+      background: #fff;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      break-inside: avoid;
+    }
+    .qr-card-head {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #0f172a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+    .qr-card img {
+      width: 156px;
+      height: 156px;
+      display: block;
+      margin: 0 auto 8px;
+    }
+    .qr-card-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .qr-card-meta {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 2px;
+    }
+    @media print {
+      body { background: #fff; }
+      .print-bar { display: none; }
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 0;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <div><strong>Cetak Kartu QR Absensi Siswa</strong></div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Cetak / Simpan PDF</button>
+      <a href="/admin" class="btn btn-dark btn-sm">Kembali ke Admin</a>
+    </div>
+  </div>
+
+  <div id="statusMsg" class="empty-state">Memuat kartu QR siswa...</div>
+  <div id="cardsGrid" class="cards-grid hidden"></div>
+
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const kelas = params.get('kelas') || '';
+      const idSiswa = params.get('id_siswa') || '';
+      const statusMsg = document.getElementById('statusMsg');
+      const grid = document.getElementById('cardsGrid');
+
+      try {
+        const setRes = await fetch('/api/admin/settings');
+        if (setRes.status === 401) {
+          statusMsg.textContent = 'Silakan login di Panel Admin terlebih dahulu untuk mencetak kartu QR.';
+          return;
+        }
+        const setData = await setRes.json();
+        const school = (setData.settings && setData.settings.nama_sekolah) || 'SMK NEGERI 55 JAKARTA';
+
+        const q = new URLSearchParams({ filter: 'aktif' });
+        if (kelas) q.set('kelas', kelas);
+        const res = await fetch('/api/admin/students?' + q.toString());
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Gagal memuat siswa');
+
+        let list = data.students || [];
+        if (idSiswa) list = list.filter(s => String(s.id_siswa) === idSiswa);
+
+        if (list.length === 0) {
+          statusMsg.textContent = 'Tidak ada siswa aktif ditemukan untuk dicetak.';
+          return;
+        }
+
+        statusMsg.classList.add('hidden');
+        grid.classList.remove('hidden');
+
+        list.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'qr-card';
+          div.innerHTML = `
+            <div class="qr-card-head">${escapeHtml(school)}</div>
+            <img src="/api/admin/qr/${s.id_siswa}" alt="QR ${escapeHtml(s.nama)}" loading="lazy" />
+            <div class="qr-card-name">${escapeHtml(s.nama)}</div>
+            <div class="qr-card-meta tabular">NIS: ${escapeHtml(s.nis)} | ${escapeHtml(s.nama_kelas)}</div>
+          `;
+          grid.appendChild(div);
+        });
+      } catch (err) {
+        statusMsg.textContent = 'Gagal memuat kartu QR: ' + err.message;
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+    })();
+  </script>
+</body>
+</html>

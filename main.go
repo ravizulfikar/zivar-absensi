@@ -76,6 +76,10 @@ func (a *App) routes() *http.ServeMux {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "db": a.cfg.DBName, "schema": a.schema.Mode})
 	})
 
+	// School branding & logo (public)
+	mux.HandleFunc("GET /api/school/info", a.handleSchoolInfo)
+	mux.HandleFunc("GET /api/school/logo", a.handleSchoolLogo)
+
 	// Kiosk & IoT APIs
 	mux.HandleFunc("POST /api/kiosk/scan", a.handleKioskScan)
 	mux.HandleFunc("POST /api/iot/scan", a.handleIoTScan)
@@ -98,6 +102,8 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("GET /api/admin/export", a.requireAuth(a.handleAdminExportCSV))
 	mux.HandleFunc("GET /api/admin/settings", a.requireAuth(a.handleAdminGetSettings))
 	mux.HandleFunc("POST /api/admin/settings", a.requireAdmin(a.handleAdminSaveSettings))
+	mux.HandleFunc("POST /api/admin/logo", a.requireAdmin(a.handleAdminUploadLogo))
+	mux.HandleFunc("DELETE /api/admin/logo", a.requireAdmin(a.handleAdminResetLogo))
 
 	// Static & HTML pages
 	staticSub, _ := fs.Sub(webFS, "web")

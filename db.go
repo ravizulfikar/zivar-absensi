@@ -15,7 +15,12 @@ import (
 )
 
 type Settings struct {
+	NamaAplikasi   string `json:"nama_aplikasi"`
 	NamaSekolah    string `json:"nama_sekolah"`
+	AlamatSekolah  string `json:"alamat_sekolah"`
+	TeleponSekolah string `json:"telepon_sekolah"`
+	LogoFile       string `json:"logo_file,omitempty"`
+	LogoURL        string `json:"logo_url"`
 	JamMasukBatas  string `json:"jam_masuk_batas"`
 	JamPulangMulai string `json:"jam_pulang_mulai"`
 	CooldownDetik  int    `json:"cooldown_detik"`
@@ -185,15 +190,29 @@ func migrateAttendanceTables(ctx context.Context, db *sql.DB, schema DBSchema) e
 	}
 
 	defaultSchool := "SMK NEGERI 55 JAKARTA"
+	defaultAddress := "Jl. Pademangan Timur VII, Pademangan, Jakarta Utara 14410"
+	defaultPhone := "(021) 6412787"
 	if schema.HasSchoolProfile {
-		var name string
-		if err := db.QueryRowContext(ctx, `SELECT name FROM unbk_school_profile WHERE id = 1 LIMIT 1`).Scan(&name); err == nil && strings.TrimSpace(name) != "" {
-			defaultSchool = strings.TrimSpace(name)
+		var name, addr, phone string
+		if err := db.QueryRowContext(ctx, `SELECT name, COALESCE(address,''), COALESCE(phone,'') FROM unbk_school_profile WHERE id = 1 LIMIT 1`).Scan(&name, &addr, &phone); err == nil {
+			if strings.TrimSpace(name) != "" {
+				defaultSchool = strings.TrimSpace(name)
+			}
+			if strings.TrimSpace(addr) != "" {
+				defaultAddress = strings.TrimSpace(addr)
+			}
+			if strings.TrimSpace(phone) != "" {
+				defaultPhone = strings.TrimSpace(phone)
+			}
 		}
 	}
 
 	defaults := map[string]string{
+		"nama_aplikasi":    "Absensi Digital",
 		"nama_sekolah":     defaultSchool,
+		"alamat_sekolah":   defaultAddress,
+		"telepon_sekolah":  defaultPhone,
+		"logo_file":        "",
 		"jam_masuk_batas":  "07:00",
 		"jam_pulang_mulai": "14:00",
 		"cooldown_detik":   "30",
@@ -211,7 +230,11 @@ func migrateAttendanceTables(ctx context.Context, db *sql.DB, schema DBSchema) e
 
 func loadSettings(ctx context.Context, db *sql.DB) Settings {
 	s := Settings{
+		NamaAplikasi:   "Absensi Digital",
 		NamaSekolah:    "SMK NEGERI 55 JAKARTA",
+		AlamatSekolah:  "Jl. Pademangan Timur VII, Pademangan, Jakarta Utara 14410",
+		TeleponSekolah: "(021) 6412787",
+		LogoURL:        "/api/school/logo",
 		JamMasukBatas:  "07:00",
 		JamPulangMulai: "14:00",
 		CooldownDetik:  30,
@@ -230,10 +253,20 @@ func loadSettings(ctx context.Context, db *sql.DB) Settings {
 			continue
 		}
 		switch k {
+		case "nama_aplikasi":
+			if strings.TrimSpace(v) != "" {
+				s.NamaAplikasi = strings.TrimSpace(v)
+			}
 		case "nama_sekolah":
 			if strings.TrimSpace(v) != "" {
 				s.NamaSekolah = strings.TrimSpace(v)
 			}
+		case "alamat_sekolah":
+			s.AlamatSekolah = strings.TrimSpace(v)
+		case "telepon_sekolah":
+			s.TeleponSekolah = strings.TrimSpace(v)
+		case "logo_file":
+			s.LogoFile = strings.TrimSpace(v)
 		case "jam_masuk_batas":
 			if isValidHHMM(v) {
 				s.JamMasukBatas = v
@@ -252,10 +285,16 @@ func loadSettings(ctx context.Context, db *sql.DB) Settings {
 			s.KioskAPIKey = strings.TrimSpace(v)
 		}
 	}
+	if s.LogoFile != "" {
+		s.LogoURL = "/api/school/logo?v=" + url.QueryEscape(s.LogoFile)
+	}
 	return s
 }
 
 func saveSettings(ctx context.Context, db *sql.DB, s Settings) error {
+	if strings.TrimSpace(s.NamaAplikasi) == "" {
+		s.NamaAplikasi = "Absensi Digital"
+	}
 	if strings.TrimSpace(s.NamaSekolah) == "" {
 		s.NamaSekolah = "SMK NEGERI 55 JAKARTA"
 	}
@@ -273,7 +312,10 @@ func saveSettings(ctx context.Context, db *sql.DB, s Settings) error {
 		qrNIS = "1"
 	}
 	items := map[string]string{
+		"nama_aplikasi":    strings.TrimSpace(s.NamaAplikasi),
 		"nama_sekolah":     strings.TrimSpace(s.NamaSekolah),
+		"alamat_sekolah":   strings.TrimSpace(s.AlamatSekolah),
+		"telepon_sekolah":  strings.TrimSpace(s.TeleponSekolah),
 		"jam_masuk_batas":  s.JamMasukBatas,
 		"jam_pulang_mulai": s.JamPulangMulai,
 		"cooldown_detik":   strconv.Itoa(s.CooldownDetik),

@@ -2,22 +2,24 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Cetak Kartu QR Absensi Siswa</title>
+  <link rel="icon" type="image/png" href="/api/school/logo" />
   <link rel="stylesheet" href="/assets/styles.css" />
   <style>
     .print-bar {
-      background: var(--navy);
+      background: linear-gradient(120deg, var(--brand-deep), var(--brand));
       color: #fff;
       padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: 16px;
       padding: 20px;
       max-width: 1120px;
@@ -25,36 +27,56 @@
     }
     .qr-card {
       background: #fff;
-      border: 1px solid #94a3b8;
-      border-radius: 8px;
+      border: 1.5px solid #9ab4a7;
+      border-radius: 12px;
       padding: 14px;
       text-align: center;
       break-inside: avoid;
     }
     .qr-card-head {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #0f172a;
-      border-bottom: 1px solid #cbd5e1;
-      padding-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      border-bottom: 1.5px solid #d2e0d8;
+      padding-bottom: 8px;
       margin-bottom: 10px;
     }
-    .qr-card img {
-      width: 156px;
-      height: 156px;
+    .qr-card-head img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      flex: none;
+    }
+    .qr-card-head strong {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #143b32;
+      line-height: 1.2;
+    }
+    .qr-card-head small {
+      display: block;
+      font-size: 9.5px;
+      color: #526760;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+    .qr-card img.qr-code-img {
+      width: 152px;
+      height: 152px;
       display: block;
       margin: 0 auto 8px;
     }
     .qr-card-name {
       font-size: 14px;
-      font-weight: 700;
-      color: #0f172a;
+      font-weight: 800;
+      color: #162923;
     }
     .qr-card-meta {
       font-size: 12px;
-      color: #475569;
+      color: #526760;
       margin-top: 2px;
     }
     @media print {
@@ -71,9 +93,9 @@
 <body>
   <div class="print-bar">
     <div><strong>Cetak Kartu QR Absensi Siswa</strong></div>
-    <div style="display:flex;gap:8px;">
-      <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Cetak / Simpan PDF</button>
-      <a href="/admin" class="btn btn-dark btn-sm">Kembali ke Admin</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-white btn-sm" onclick="window.print()">Cetak / Simpan PDF</button>
+      <a href="/admin" class="btn btn-ghost-light btn-sm">Kembali ke Admin</a>
     </div>
   </div>
 
@@ -95,7 +117,10 @@
           return;
         }
         const setData = await setRes.json();
-        const school = (setData.settings && setData.settings.nama_sekolah) || 'SMK NEGERI 55 JAKARTA';
+        const sCfg = setData.settings || {};
+        const school = sCfg.nama_sekolah || 'SMK NEGERI 55 JAKARTA';
+        const addr = sCfg.alamat_sekolah || 'Kartu Absensi Siswa';
+        const logoUrl = sCfg.logo_url || '/api/school/logo';
 
         const q = new URLSearchParams({ filter: 'aktif' });
         if (kelas) q.set('kelas', kelas);
@@ -118,10 +143,16 @@
           const div = document.createElement('div');
           div.className = 'qr-card';
           div.innerHTML = `
-            <div class="qr-card-head">${escapeHtml(school)}</div>
-            <img src="/api/admin/qr/${s.id_siswa}" alt="QR ${escapeHtml(s.nama)}" loading="lazy" />
+            <div class="qr-card-head">
+              <img src="${escapeHtml(logoUrl)}" alt="" />
+              <div>
+                <strong>${escapeHtml(school)}</strong>
+                <small>${escapeHtml(addr)}</small>
+              </div>
+            </div>
+            <img class="qr-code-img" src="/api/admin/qr/${s.id_siswa}" alt="QR ${escapeHtml(s.nama)}" loading="lazy" />
             <div class="qr-card-name">${escapeHtml(s.nama)}</div>
-            <div class="qr-card-meta tabular">NIS: ${escapeHtml(s.nis)} | ${escapeHtml(s.nama_kelas)}</div>
+            <div class="qr-card-meta tabular">NIS: ${escapeHtml(s.nis)} · ${escapeHtml(s.nama_kelas)}</div>
           `;
           grid.appendChild(div);
         });

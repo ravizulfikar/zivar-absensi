@@ -2,19 +2,24 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kiosk Absensi QR & RFID</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#143b32" />
+  <title>Kiosk Absensi Digital</title>
+  <link rel="icon" type="image/png" href="/api/school/logo" />
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-brand">
-      <div class="topbar-title" id="schoolName">SMK NEGERI 55 JAKARTA</div>
-      <div class="topbar-sub">Kiosk Absensi Harian Siswa (RFID & QR Code)</div>
+      <img id="schoolLogo" class="topbar-logo" src="/api/school/logo" alt="Logo Sekolah" />
+      <div class="topbar-text">
+        <div class="topbar-title" id="schoolName">SMK NEGERI 55 JAKARTA</div>
+        <div class="topbar-sub" id="appSubtitle">Absensi Digital · Kiosk RFID &amp; QR Code</div>
+      </div>
     </div>
     <div class="topbar-actions">
-      <button type="button" class="btn btn-dark btn-sm" id="btnSound" aria-pressed="true">Suara: Aktif</button>
-      <a href="/admin" class="btn btn-primary btn-sm">Panel Admin / Guru</a>
+      <button type="button" class="btn btn-ghost-light btn-sm" id="btnSound" aria-pressed="true">🔊 Suara: Aktif</button>
+      <a href="/admin" class="btn btn-white btn-sm">Panel Admin / Guru</a>
     </div>
   </header>
 
@@ -27,8 +32,8 @@
             <div class="kiosk-clock tabular" id="liveClock">--:--:--</div>
             <div class="kiosk-date" id="liveDate">Memuat tanggal...</div>
           </div>
-          <div>
-            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:4px;font-weight:600;">Mode Absensi</div>
+          <div class="mode-wrap">
+            <span class="mode-label">Mode Absensi</span>
             <div class="mode-group" role="group" aria-label="Pilih mode absensi">
               <button type="button" class="mode-btn active" data-mode="auto">Otomatis</button>
               <button type="button" class="mode-btn" data-mode="masuk">Masuk</button>
@@ -47,52 +52,52 @@
             autofocus
             required
           />
-          <button type="submit" class="btn btn-primary" id="btnSubmitScan">Catat</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitScan">Catat Absen</button>
         </form>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--ink-muted);">
-          <span id="ruleInfo">Batas masuk: 07:00 | Mulai pulang: 14:00</span>
-          <button type="button" class="btn btn-sm" id="btnToggleCamera">Aktifkan Kamera QR</button>
+        <div class="kiosk-meta-row">
+          <span class="rule-pill" id="ruleInfo">Batas masuk: 07:00 · Mulai pulang: 14:00</span>
+          <button type="button" class="btn btn-sm" id="btnToggleCamera">📷 Aktifkan Kamera QR</button>
         </div>
 
         <div id="cameraError" class="alert alert-warn hidden" style="margin-top:12px;"></div>
         <div id="cameraBox" class="camera-box hidden">
           <video id="cameraVideo" playsinline muted></video>
-          <div style="padding:8px 12px;color:#e2e8f0;font-size:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div style="padding:10px 14px;color:#e2e8f0;font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
             <span>Arahkan QR Code kartu siswa ke kamera</span>
-            <button type="button" class="btn btn-dark btn-sm" id="btnStopCamera">Tutup Kamera</button>
+            <button type="button" class="btn btn-ghost-light btn-sm" id="btnStopCamera">Tutup Kamera</button>
           </div>
         </div>
 
         <div id="resultPanel" class="result-panel" aria-live="polite">
-          <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-muted);">Status Pemindaian</div>
+          <div class="result-eyebrow" id="resEyebrow">Status Pemindaian</div>
           <div class="result-name" id="resName">Siap Menerima Kartu / QR</div>
-          <div id="resMeta" style="font-size:14px;color:var(--ink-muted);">Tempelkan kartu RFID pada reader USB atau pindai QR Code siswa untuk mencatat kehadiran.</div>
+          <div class="result-meta" id="resMeta" style="color:var(--ink-muted);">Tempelkan kartu RFID pada reader USB atau pindai QR Code siswa untuk mencatat kehadiran.</div>
         </div>
       </section>
 
       <!-- Kolom Kanan: Ringkasan & Aktivitas Hari Ini -->
       <aside class="card" aria-label="Ringkasan dan absensi terbaru hari ini">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <h2 style="margin:0;font-size:16px;">Kehadiran Hari Ini</h2>
+        <div class="section-card-head">
+          <h2>Kehadiran Hari Ini</h2>
           <button type="button" class="btn btn-sm" id="btnRefreshRecent">Muat Ulang</button>
         </div>
 
         <div class="summary-strip">
-          <div class="stat-box">
-            <div class="stat-label">Hadir</div>
+          <div class="stat-box accent-ok">
+            <div class="stat-label">Hadir Tepat Waktu</div>
             <div class="stat-val tabular" id="sumHadir">-</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box accent-warn">
             <div class="stat-label">Terlambat</div>
             <div class="stat-val tabular" id="sumTerlambat">-</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Pulang</div>
+          <div class="stat-box accent-info">
+            <div class="stat-label">Sudah Pulang</div>
             <div class="stat-val tabular" id="sumPulang">-</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Siswa Aktif</div>
+          <div class="stat-box accent-brand">
+            <div class="stat-label">Total Siswa Aktif</div>
             <div class="stat-val tabular" id="sumTotal">-</div>
           </div>
         </div>
@@ -105,12 +110,15 @@
     </div>
   </main>
 
+  <footer class="school-footer" id="schoolFooter">SMK NEGERI 55 JAKARTA</footer>
+
   <script>
     (function () {
       const scanInput = document.getElementById('scanInput');
       const scanForm = document.getElementById('scanForm');
       const btnSubmitScan = document.getElementById('btnSubmitScan');
       const resultPanel = document.getElementById('resultPanel');
+      const resEyebrow = document.getElementById('resEyebrow');
       const resName = document.getElementById('resName');
       const resMeta = document.getElementById('resMeta');
       const btnSound = document.getElementById('btnSound');
@@ -127,7 +135,6 @@
       let lastQRCode = '';
       let lastQRTime = 0;
 
-      // Jam realtime
       const dateFmt = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       function tickClock() {
         const now = new Date();
@@ -137,7 +144,6 @@
       tickClock();
       setInterval(tickClock, 1000);
 
-      // Mode buttons
       document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -147,22 +153,21 @@
         });
       });
 
-      // Sound toggle
       btnSound.addEventListener('click', () => {
         soundEnabled = !soundEnabled;
-        btnSound.textContent = soundEnabled ? 'Suara: Aktif' : 'Suara: Mati';
+        btnSound.textContent = soundEnabled ? '🔊 Suara: Aktif' : '🔇 Suara: Mati';
         btnSound.setAttribute('aria-pressed', String(soundEnabled));
       });
 
       function playBeep(type) {
-        if (!soundEnabled || !window.AudioContext) return;
+        if (!soundEnabled || !(window.AudioContext || window.webkitAudioContext)) return;
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.connect(gain);
           gain.connect(ctx.destination);
-          gain.gain.value = 0.12;
+          gain.gain.value = 0.14;
           if (type === 'ok') {
             osc.frequency.value = 880;
             osc.start();
@@ -179,7 +184,6 @@
         } catch (_) {}
       }
 
-      // Jaga fokus input agar RFID USB reader selalu siap dipakai
       document.addEventListener('click', (e) => {
         if (e.target.closest('button, a, input, select')) return;
         scanInput.focus();
@@ -219,22 +223,27 @@
       function renderResult(data) {
         resultPanel.className = 'result-panel';
         if (data.hasil === 'masuk') {
-          resultPanel.classList.add(data.status_absen === 'terlambat' ? 'warn' : 'ok');
-          playBeep(data.status_absen === 'terlambat' ? 'warn' : 'ok');
+          const late = data.status_absen === 'terlambat';
+          resultPanel.classList.add(late ? 'warn' : 'ok');
+          resEyebrow.textContent = late ? 'Absen Masuk · Terlambat' : 'Absen Masuk · Tepat Waktu';
+          playBeep(late ? 'warn' : 'ok');
         } else if (data.hasil === 'pulang') {
           resultPanel.classList.add('info');
+          resEyebrow.textContent = 'Absen Pulang Tercatat';
           playBeep('ok');
         } else if (data.hasil === 'duplikat') {
           resultPanel.classList.add('warn');
+          resEyebrow.textContent = 'Sudah Tercatat';
           playBeep('warn');
         } else {
           resultPanel.classList.add('err');
+          resEyebrow.textContent = 'Tidak Dapat Diproses';
           playBeep('err');
         }
 
         if (data.student) {
           resName.textContent = data.student.nama;
-          resMeta.textContent = `NIS ${data.student.nis} | Kelas ${data.student.nama_kelas} | ${data.pesan}`;
+          resMeta.textContent = `NIS ${data.student.nis} · ${data.student.nama_kelas} — ${data.pesan}`;
         } else {
           resName.textContent = data.hasil === 'tidak_dikenal' ? 'Kartu / QR Belum Terdaftar' : 'Gagal Memproses';
           resMeta.textContent = data.pesan || data.error || 'Terjadi kesalahan.';
@@ -246,7 +255,6 @@
         submitScan(scanInput.value, 'auto');
       });
 
-      // Kamera QR menggunakan BarcodeDetector bawaan browser (offline)
       async function startCamera() {
         cameraError.classList.add('hidden');
         if (!('BarcodeDetector' in window)) {
@@ -259,7 +267,7 @@
           cameraVideo.srcObject = cameraStream;
           await cameraVideo.play();
           cameraBox.classList.remove('hidden');
-          btnToggleCamera.textContent = 'Kamera QR Aktif';
+          btnToggleCamera.textContent = '📷 Kamera QR Aktif';
 
           const detector = new BarcodeDetector({ formats: ['qr_code'] });
           cameraTimer = setInterval(async () => {
@@ -284,17 +292,11 @@
       }
 
       function stopCamera() {
-        if (cameraTimer) {
-          clearInterval(cameraTimer);
-          cameraTimer = null;
-        }
-        if (cameraStream) {
-          cameraStream.getTracks().forEach(t => t.stop());
-          cameraStream = null;
-        }
+        if (cameraTimer) { clearInterval(cameraTimer); cameraTimer = null; }
+        if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
         cameraVideo.srcObject = null;
         cameraBox.classList.add('hidden');
-        btnToggleCamera.textContent = 'Aktifkan Kamera QR';
+        btnToggleCamera.textContent = '📷 Aktifkan Kamera QR';
         scanInput.focus();
       }
 
@@ -304,7 +306,18 @@
       });
       btnStopCamera.addEventListener('click', stopCamera);
 
-      // Muat ringkasan & riwayat terbaru
+      function applyBranding(s) {
+        if (!s) return;
+        const appName = s.nama_aplikasi || 'Absensi Digital';
+        const schoolName = s.nama_sekolah || 'SMK NEGERI 55 JAKARTA';
+        document.title = `${appName} · ${schoolName}`;
+        document.getElementById('schoolName').textContent = schoolName;
+        document.getElementById('appSubtitle').textContent = `${appName} · Kiosk RFID & QR Code`;
+        if (s.logo_url) document.getElementById('schoolLogo').src = s.logo_url;
+        const parts = [schoolName, s.alamat_sekolah, s.telepon_sekolah ? `Telp. ${s.telepon_sekolah}` : ''].filter(Boolean);
+        document.getElementById('schoolFooter').textContent = parts.join(' · ');
+      }
+
       async function loadRecent() {
         const errBox = document.getElementById('recentError');
         const loading = document.getElementById('recentLoading');
@@ -318,9 +331,9 @@
           if (!data.ok) throw new Error(data.error || 'Gagal memuat data');
 
           if (data.settings) {
-            document.getElementById('schoolName').textContent = data.settings.nama_sekolah;
+            applyBranding(data.settings);
             document.getElementById('ruleInfo').textContent =
-              `Batas masuk: ${data.settings.jam_masuk_batas} | Mulai pulang: ${data.settings.jam_pulang_mulai}`;
+              `Batas masuk: ${data.settings.jam_masuk_batas} · Mulai pulang: ${data.settings.jam_pulang_mulai}`;
           }
           if (data.summary) {
             document.getElementById('sumHadir').textContent = data.summary.hadir;
@@ -346,13 +359,13 @@
             const badgeClass = item.jam_pulang ? 'badge-pulang' : `badge-${item.status}`;
             const badgeLabel = item.jam_pulang ? 'PULANG' : item.status.toUpperCase();
             li.innerHTML = `
-              <div>
-                <div style="font-weight:700;">${escapeHtml(item.nama)}</div>
-                <div style="font-size:12px;color:var(--ink-muted);" class="tabular">${escapeHtml(item.nis)} | ${escapeHtml(item.nama_kelas)}</div>
+              <div style="min-width:0;">
+                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(item.nama)}</div>
+                <div style="font-size:12px;color:var(--ink-muted);" class="tabular">${escapeHtml(item.nis)} · ${escapeHtml(item.nama_kelas)}</div>
               </div>
-              <div style="text-align:right;">
+              <div style="text-align:right;flex:none;">
                 <span class="badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
-                <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;" class="tabular">${escapeHtml(waktu)}</div>
+                <div style="font-size:12px;color:var(--ink-muted);margin-top:3px;" class="tabular">${escapeHtml(waktu)}</div>
               </div>
             `;
             list.appendChild(li);

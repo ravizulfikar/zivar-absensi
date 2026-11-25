@@ -2,39 +2,47 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Panel Admin Absensi QR & RFID</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#143b32" />
+  <title>Panel Admin Absensi Digital</title>
+  <link rel="icon" type="image/png" href="/api/school/logo" />
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-brand">
-      <div class="topbar-title">Panel Admin Absensi</div>
-      <div class="topbar-sub" id="schemaLabel">Sistem Absensi Harian Siswa (QR &amp; RFID)</div>
+      <img id="topLogo" class="topbar-logo" src="/api/school/logo" alt="Logo Sekolah" />
+      <div class="topbar-text">
+        <div class="topbar-title" id="topSchoolName">Panel Admin Absensi</div>
+        <div class="topbar-sub" id="schemaLabel">Absensi Digital · QR &amp; RFID</div>
+      </div>
     </div>
     <div class="topbar-actions">
-      <a href="/" class="btn btn-dark btn-sm">Buka Kiosk</a>
-      <span id="userLabel" class="hidden" style="font-size:13px;color:#cbd5e1;"></span>
-      <button type="button" id="btnLogout" class="btn btn-sm hidden">Keluar</button>
+      <a href="/" class="btn btn-ghost-light btn-sm">Buka Kiosk</a>
+      <span id="userLabel" class="user-pill hidden"></span>
+      <button type="button" id="btnLogout" class="btn btn-white btn-sm hidden">Keluar</button>
     </div>
   </header>
 
   <!-- Layar Login -->
-  <main id="loginView" class="container" style="max-width:440px;margin-top:40px;">
+  <main id="loginView" class="login-shell">
     <section class="card-elevated">
-      <h1 style="margin:0 0 6px;font-size:20px;">Masuk Petugas / Guru</h1>
-      <p style="margin:0 0 18px;font-size:14px;color:var(--ink-muted);">Gunakan akun admin atau pengajar yang terdaftar pada sistem sekolah (revamp maupun legacy).</p>
+      <div class="login-brand-box">
+        <img id="loginLogo" src="/api/school/logo" alt="Logo Sekolah" />
+        <h1 id="loginSchoolName">Absensi Digital Sekolah</h1>
+        <p id="loginSchoolSub">Masuk menggunakan akun admin atau pengajar sekolah.</p>
+      </div>
       <div id="loginError" class="alert alert-err hidden" style="margin-bottom:14px;"></div>
       <form id="loginForm" style="display:flex;flex-direction:column;gap:14px;">
         <div class="field">
           <label for="loginUser">Username</label>
-          <input id="loginUser" class="input" type="text" required autocomplete="username" />
+          <input id="loginUser" class="input" type="text" placeholder="Masukkan username" required autocomplete="username" />
         </div>
         <div class="field">
           <label for="loginPass">Password</label>
-          <input id="loginPass" class="input" type="password" required autocomplete="current-password" />
+          <input id="loginPass" class="input" type="password" placeholder="Masukkan kata sandi" required autocomplete="current-password" />
         </div>
-        <button type="submit" class="btn btn-primary" id="btnLoginSubmit">Masuk</button>
+        <button type="submit" class="btn btn-primary" id="btnLoginSubmit" style="width:100%;">Masuk ke Panel Admin</button>
       </form>
     </section>
   </main>
@@ -42,9 +50,9 @@
   <!-- Panel Utama -->
   <main id="adminView" class="container hidden">
     <nav class="tabs" role="tablist" aria-label="Menu panel admin">
-      <button type="button" class="tab-btn active" data-tab="rekap" role="tab" aria-selected="true">Rekap & Input Harian</button>
-      <button type="button" class="tab-btn" data-tab="kartu" role="tab" aria-selected="false">Kartu RFID & QR Siswa</button>
-      <button type="button" class="tab-btn" data-tab="pengaturan" role="tab" aria-selected="false">Pengaturan Jam & Perangkat</button>
+      <button type="button" class="tab-btn active" data-tab="rekap" role="tab" aria-selected="true">Rekap &amp; Input Harian</button>
+      <button type="button" class="tab-btn" data-tab="kartu" role="tab" aria-selected="false">Kartu RFID &amp; QR Siswa</button>
+      <button type="button" class="tab-btn" data-tab="pengaturan" role="tab" aria-selected="false">Identitas Sekolah &amp; Pengaturan</button>
     </nav>
 
     <!-- TAB 1: REKAP HARIAN -->
@@ -54,7 +62,7 @@
           <label for="attDate">Tanggal</label>
           <input id="attDate" class="input" type="date" />
         </div>
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:185px;">
           <label for="attKelas">Kelas</label>
           <select id="attKelas" class="select"><option value="">Semua Kelas</option></select>
         </div>
@@ -78,13 +86,13 @@
         <button type="button" class="btn" id="btnExportDay">Export CSV Harian</button>
       </div>
 
-      <div id="attSummary" class="summary-strip" style="grid-template-columns:repeat(6,minmax(0,1fr));">
-        <div class="stat-box"><div class="stat-label">Hadir</div><div class="stat-val tabular" id="cHadir">0</div></div>
-        <div class="stat-box"><div class="stat-label">Terlambat</div><div class="stat-val tabular" id="cTerlambat">0</div></div>
-        <div class="stat-box"><div class="stat-label">Izin</div><div class="stat-val tabular" id="cIzin">0</div></div>
-        <div class="stat-box"><div class="stat-label">Sakit</div><div class="stat-val tabular" id="cSakit">0</div></div>
-        <div class="stat-box"><div class="stat-label">Alpha</div><div class="stat-val tabular" id="cAlpha">0</div></div>
-        <div class="stat-box"><div class="stat-label">Belum Absen</div><div class="stat-val tabular" id="cBelum">0</div></div>
+      <div id="attSummary" class="summary-strip six">
+        <div class="stat-box accent-ok"><div class="stat-label">Hadir</div><div class="stat-val tabular" id="cHadir">0</div></div>
+        <div class="stat-box accent-warn"><div class="stat-label">Terlambat</div><div class="stat-val tabular" id="cTerlambat">0</div></div>
+        <div class="stat-box accent-info"><div class="stat-label">Izin</div><div class="stat-val tabular" id="cIzin">0</div></div>
+        <div class="stat-box accent-purple"><div class="stat-label">Sakit</div><div class="stat-val tabular" id="cSakit">0</div></div>
+        <div class="stat-box accent-err"><div class="stat-label">Alpha</div><div class="stat-val tabular" id="cAlpha">0</div></div>
+        <div class="stat-box accent-brand"><div class="stat-label">Belum Absen</div><div class="stat-val tabular" id="cBelum">0</div></div>
       </div>
 
       <div id="attError" class="alert alert-err hidden" style="margin-bottom:12px;"></div>
@@ -108,8 +116,7 @@
         </table>
       </div>
 
-      <!-- Export Rentang Tanggal -->
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
         <div class="field" style="width:165px;">
           <label for="expFrom">Export Dari Tanggal</label>
           <input id="expFrom" class="input" type="date" />
@@ -125,11 +132,11 @@
     <!-- TAB 2: KARTU RFID & QR SISWA -->
     <section id="tab-kartu" class="card hidden">
       <div class="toolbar">
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:185px;">
           <label for="stuKelas">Kelas</label>
           <select id="stuKelas" class="select"><option value="">Semua Kelas</option></select>
         </div>
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:185px;">
           <label for="stuFilter">Filter Kartu</label>
           <select id="stuFilter" class="select">
             <option value="aktif">Siswa Aktif</option>
@@ -151,10 +158,9 @@
       <div id="stuMsg" class="alert alert-ok hidden" style="margin-bottom:12px;"></div>
       <div id="stuError" class="alert alert-err hidden" style="margin-bottom:12px;"></div>
 
-      <!-- Tap RFID Baru Belum Terdaftar -->
-      <div style="margin-bottom:16px;padding:12px 14px;background:var(--surface-muted);border:1px solid var(--border);border-radius:var(--radius-sm);">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">
-          <strong style="font-size:13px;">Kartu RFID Baru Terdeteksi di Kiosk (Belum Terdaftar)</strong>
+      <div class="unreg-banner">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+          <strong style="font-size:13.5px;color:var(--brand-deep);">Kartu RFID Baru Terdeteksi di Kiosk (Belum Terdaftar)</strong>
           <button type="button" class="btn btn-sm" id="btnRefreshTaps">Segarkan Log</button>
         </div>
         <div id="tapsList" style="display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--ink-muted);">
@@ -182,49 +188,89 @@
       </div>
     </section>
 
-    <!-- TAB 3: PENGATURAN -->
-    <section id="tab-pengaturan" class="card hidden" style="max-width:640px;">
-      <h2 style="margin:0 0 14px;font-size:17px;">Pengaturan Jam Absensi & Perangkat</h2>
-      <div id="setMsg" class="alert alert-ok hidden" style="margin-bottom:12px;"></div>
-      <div id="setErr" class="alert alert-err hidden" style="margin-bottom:12px;"></div>
-      <form id="settingsForm" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="field">
-          <label for="setNama">Nama Sekolah</label>
-          <input id="setNama" class="input" type="text" required />
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field">
-            <label for="setMasuk">Batas Jam Masuk (Lewat = Terlambat)</label>
-            <input id="setMasuk" class="input" type="time" required />
+    <!-- TAB 3: IDENTITAS SEKOLAH & PENGATURAN -->
+    <section id="tab-pengaturan" class="card hidden">
+      <div class="section-card-head">
+        <h2>Identitas Sekolah, Logo &amp; Pengaturan Absensi</h2>
+      </div>
+      <div id="setMsg" class="alert alert-ok hidden" style="margin-bottom:14px;"></div>
+      <div id="setErr" class="alert alert-err hidden" style="margin-bottom:14px;"></div>
+
+      <form id="settingsForm" style="display:flex;flex-direction:column;gap:18px;">
+        <div class="settings-grid">
+          <!-- Kolom Kiri: Identitas & Logo Sekolah -->
+          <div class="form-box">
+            <h3>Identitas &amp; Logo Sekolah</h3>
+            <div class="logo-upload-row">
+              <img id="setLogoPreview" class="logo-upload-preview" src="/api/school/logo" alt="Pratinjau Logo" />
+              <div class="logo-upload-controls">
+                <input id="logoFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+                <span class="field-hint">PNG transparan, JPG, atau WebP (maks. 2 MB).</span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btnUploadLogo">Unggah Logo</button>
+                  <button type="button" class="btn btn-danger-outline btn-sm" id="btnResetLogo">Logo Bawaan</button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="setAppName">Nama Aplikasi / Header</label>
+              <input id="setAppName" class="input" type="text" placeholder="Contoh: Absensi Digital" required />
+            </div>
+            <div class="field">
+              <label for="setNama">Nama Sekolah</label>
+              <input id="setNama" class="input" type="text" placeholder="Contoh: SMK NEGERI 55 JAKARTA" required />
+            </div>
+            <div class="field">
+              <label for="setAlamat">Alamat Sekolah</label>
+              <textarea id="setAlamat" class="textarea" rows="2" placeholder="Jalan, Kelurahan, Kecamatan, Kota"></textarea>
+            </div>
+            <div class="field">
+              <label for="setTelp">Telepon / Kontak Sekolah</label>
+              <input id="setTelp" class="input" type="text" placeholder="Contoh: (021) 6412787" />
+            </div>
           </div>
-          <div class="field">
-            <label for="setPulang">Jam Mulai Absen Pulang</label>
-            <input id="setPulang" class="input" type="time" required />
+
+          <!-- Kolom Kanan: Jam Absensi & Perangkat -->
+          <div class="form-box">
+            <h3>Jam Absensi &amp; Integrasi Perangkat</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="field">
+                <label for="setMasuk">Batas Jam Masuk</label>
+                <input id="setMasuk" class="input" type="time" required />
+                <span class="field-hint">Lewat jam ini = Terlambat.</span>
+              </div>
+              <div class="field">
+                <label for="setPulang">Jam Mulai Pulang</label>
+                <input id="setPulang" class="input" type="time" required />
+                <span class="field-hint">Mode Otomatis pindah ke Pulang.</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="setCooldown">Cooldown Double-Tap (Detik)</label>
+              <input id="setCooldown" class="input" type="number" min="0" max="3600" required />
+              <span class="field-hint">Mencegah kartu terbaca 2 kali dalam waktu berdekatan.</span>
+            </div>
+            <label style="display:flex;align-items:center;gap:9px;font-size:13.8px;cursor:pointer;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:10px;">
+              <input id="setAllowNIS" type="checkbox" style="width:18px;height:18px;accent-color:var(--brand);" />
+              <span>Izinkan QR Code berisi NIS siswa langsung selain token ABS55</span>
+            </label>
+            <div class="field">
+              <label for="setApiKey">API Key Perangkat IoT / ESP32 (Opsional)</label>
+              <input id="setApiKey" class="input" type="text" placeholder="Kosongkan jika tidak memakai API key" />
+              <span class="field-hint">Kirim di header <code>X-API-Key</code> saat POST ke <code>/api/iot/scan</code>.</span>
+            </div>
           </div>
         </div>
-        <div class="field">
-          <label for="setCooldown">Cooldown Double-Tap (Detik)</label>
-          <input id="setCooldown" class="input" type="number" min="0" max="3600" required />
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
-          <input id="setAllowNIS" type="checkbox" style="width:18px;height:18px;" />
-          Izinkan QR Code berisi NIS siswa langsung selain token ABS55
-        </label>
-        <div class="field">
-          <label for="setApiKey">API Key Perangkat IoT / ESP32 (Opsional, kirim di header X-API-Key)</label>
-          <input id="setApiKey" class="input" type="text" placeholder="Kosongkan jika tidak memakai API key" />
-        </div>
-        <div>
+
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border);">
+          <span id="settingsReadOnlyNote" class="hidden" style="font-size:13px;color:var(--ink-muted);">Hanya administrator yang dapat mengubah pengaturan.</span>
           <button type="submit" class="btn btn-primary" id="btnSaveSettings">Simpan Pengaturan</button>
-          <span id="settingsReadOnlyNote" class="hidden" style="font-size:13px;color:var(--ink-muted);margin-left:8px;">Hanya administrator yang dapat mengubah pengaturan.</span>
         </div>
       </form>
-      <div style="margin-top:18px;padding:12px;background:var(--surface-muted);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--ink-muted);">
-        <strong>Endpoint IoT / Reader HTTP:</strong> <code>POST /api/iot/scan</code><br />
-        Body JSON: <code>{"kode":"UID_RFID_ATAU_QR","metode":"rfid","mode":"auto","kiosk":"gerbang-1"}</code>
-      </div>
     </section>
   </main>
+
+  <footer class="school-footer" id="adminFooter">SMK NEGERI 55 JAKARTA</footer>
 
   <!-- Modal Input Absensi Manual -->
   <div id="modalManual" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalManualTitle">
@@ -273,7 +319,7 @@
   <div id="modalCard" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalCardTitle">
     <div class="modal-card">
       <div class="modal-head">
-        <h3 id="modalCardTitle">Registrasi Kartu RFID & QR Siswa</h3>
+        <h3 id="modalCardTitle">Registrasi Kartu RFID &amp; QR Siswa</h3>
         <button type="button" class="btn btn-sm" data-close="modalCard">Tutup</button>
       </div>
       <div id="cardErr" class="alert alert-err hidden" style="margin-bottom:12px;"></div>
@@ -295,9 +341,9 @@
             <option value="nonaktif">Nonaktif (Blokir Kartu)</option>
           </select>
         </div>
-        <div style="text-align:center;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;">
+        <div style="text-align:center;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;">
           <img id="cardQrImg" alt="QR Code Siswa" style="width:180px;height:180px;display:block;margin:0 auto;" />
-          <div style="margin-top:8px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+          <div style="margin-top:10px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
             <a id="cardPrintLink" href="#" target="_blank" class="btn btn-sm">Cetak Kartu QR</a>
             <button type="button" id="btnRegenQr" class="btn btn-sm">Buat Ulang QR</button>
           </div>
@@ -318,6 +364,7 @@
       const btnLogout = document.getElementById('btnLogout');
 
       let selectedRfidFromLog = '';
+      let currentSchemaMode = '';
 
       function todayISO() {
         const d = new Date();
@@ -329,7 +376,33 @@
         return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       }
 
-      // Close modal via button or Escape
+      function applySchoolInfo(info) {
+        if (!info) return;
+        const appName = info.nama_aplikasi || 'Absensi Digital';
+        const schoolName = info.nama_sekolah || 'SMK NEGERI 55 JAKARTA';
+        const logoUrl = info.logo_url || '/api/school/logo';
+        document.title = `Panel Admin · ${appName} · ${schoolName}`;
+        document.getElementById('topSchoolName').textContent = schoolName;
+        document.getElementById('loginSchoolName').textContent = schoolName;
+        document.getElementById('loginSchoolSub').textContent = `${appName} — Masuk dengan akun admin atau pengajar.`;
+        document.getElementById('topLogo').src = logoUrl;
+        document.getElementById('loginLogo').src = logoUrl;
+        document.getElementById('setLogoPreview').src = logoUrl;
+        if (info.schema) currentSchemaMode = info.schema;
+        const schemaText = currentSchemaMode === 'revamp' ? 'DB Revamp (unbk_*)' : currentSchemaMode === 'legacy' ? 'DB Legacy (tb_*)' : 'QR & RFID';
+        document.getElementById('schemaLabel').textContent = `${appName} · ${schemaText}`;
+        const footParts = [schoolName, info.alamat_sekolah, info.telepon_sekolah ? `Telp. ${info.telepon_sekolah}` : ''].filter(Boolean);
+        document.getElementById('adminFooter').textContent = footParts.join(' · ');
+      }
+
+      async function loadSchoolInfo() {
+        try {
+          const res = await fetch('/api/school/info');
+          const data = await res.json();
+          if (data.ok) applySchoolInfo(data);
+        } catch (_) {}
+      }
+
       function closeAllModals() {
         document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.add('hidden'));
       }
@@ -338,7 +411,6 @@
       });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
-      // Tabs
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tab-btn').forEach(b => {
@@ -357,8 +429,8 @@
         });
       });
 
-      // Auth check
       async function checkMe() {
+        await loadSchoolInfo();
         try {
           const res = await fetch('/api/auth/me');
           if (!res.ok) throw new Error();
@@ -378,16 +450,16 @@
         userLabel.textContent = `${user.nama} (${user.role})`;
         userLabel.classList.remove('hidden');
         btnLogout.classList.remove('hidden');
-        const schemaEl = document.getElementById('schemaLabel');
-        if (schemaEl && schemaMode) {
-          schemaEl.textContent = schemaMode === 'revamp'
-            ? 'Terhubung ke database Revamp (unbk_*)'
-            : 'Terhubung ke database Legacy (tb_*)';
+        if (schemaMode) {
+          currentSchemaMode = schemaMode;
+          loadSchoolInfo();
         }
         const isAdmin = user.role === 'admin';
-        const btnSave = document.getElementById('btnSaveSettings');
+        ['btnSaveSettings', 'btnUploadLogo', 'btnResetLogo', 'logoFileInput'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.disabled = !isAdmin;
+        });
         const roNote = document.getElementById('settingsReadOnlyNote');
-        if (btnSave) btnSave.disabled = !isAdmin;
         if (roNote) roNote.classList.toggle('hidden', isAdmin);
         const today = todayISO();
         document.getElementById('attDate').value = today;
@@ -445,7 +517,6 @@
         } catch (_) {}
       }
 
-      // TAB 1: Rekap Harian
       async function loadAttendance() {
         const body = document.getElementById('attBody');
         const err = document.getElementById('attError');
@@ -501,7 +572,7 @@
       function openManualModal(row) {
         document.getElementById('manualErr').classList.add('hidden');
         document.getElementById('manIdSiswa').value = row.id_siswa;
-        document.getElementById('manStudentInfo').textContent = `${row.nama} (NIS ${row.nis} - ${row.nama_kelas})`;
+        document.getElementById('manStudentInfo').textContent = `${row.nama} (NIS ${row.nis} · ${row.nama_kelas})`;
         document.getElementById('manStatus').value = row.status === 'belum_absen' ? 'izin' : row.status;
         document.getElementById('manMasuk').value = row.jam_masuk ? row.jam_masuk.slice(0, 5) : '';
         document.getElementById('manPulang').value = row.jam_pulang ? row.jam_pulang.slice(0, 5) : '';
@@ -553,7 +624,6 @@
         window.location.href = '/api/admin/export?' + p.toString();
       });
 
-      // TAB 2: Kartu RFID & QR Siswa
       async function loadStudents() {
         const body = document.getElementById('stuBody');
         const err = document.getElementById('stuError');
@@ -629,7 +699,7 @@
       function openCardModal(s) {
         document.getElementById('cardErr').classList.add('hidden');
         document.getElementById('cardIdSiswa').value = s.id_siswa;
-        document.getElementById('cardStudentInfo').textContent = `${s.nama} (NIS ${s.nis} - ${s.nama_kelas})`;
+        document.getElementById('cardStudentInfo').textContent = `${s.nama} (NIS ${s.nis} · ${s.nama_kelas})`;
         document.getElementById('cardRfid').value = s.rfid_uid || selectedRfidFromLog || '';
         document.getElementById('cardQr').value = s.qr_token || '(Otomatis dibuat saat disimpan)';
         document.getElementById('cardStatus').value = s.status_kartu || 'aktif';
@@ -669,12 +739,8 @@
         }
       }
 
-      document.getElementById('cardForm').addEventListener('submit', e => {
-        e.preventDefault();
-        saveCard(false);
-      });
+      document.getElementById('cardForm').addEventListener('submit', e => { e.preventDefault(); saveCard(false); });
       document.getElementById('btnRegenQr').addEventListener('click', () => saveCard(true));
-
       document.getElementById('btnLoadStudents').addEventListener('click', loadStudents);
       document.getElementById('btnRefreshTaps').addEventListener('click', loadUnregisteredTaps);
       document.getElementById('btnBulkQR').addEventListener('click', async () => {
@@ -701,21 +767,69 @@
         window.open(url, '_blank');
       });
 
-      // TAB 3: Pengaturan
       async function loadSettings() {
         try {
           const res = await fetch('/api/admin/settings');
           const data = await res.json();
           if (!data.ok) return;
           const s = data.settings;
+          document.getElementById('setAppName').value = s.nama_aplikasi || 'Absensi Digital';
           document.getElementById('setNama').value = s.nama_sekolah || '';
+          document.getElementById('setAlamat').value = s.alamat_sekolah || '';
+          document.getElementById('setTelp').value = s.telepon_sekolah || '';
           document.getElementById('setMasuk').value = s.jam_masuk_batas || '07:00';
           document.getElementById('setPulang').value = s.jam_pulang_mulai || '14:00';
           document.getElementById('setCooldown').value = s.cooldown_detik ?? 30;
           document.getElementById('setAllowNIS').checked = !!s.izinkan_qr_nis;
           document.getElementById('setApiKey').value = s.kiosk_api_key || '';
+          applySchoolInfo(s);
         } catch (_) {}
       }
+
+      document.getElementById('btnUploadLogo').addEventListener('click', async () => {
+        const msg = document.getElementById('setMsg');
+        const err = document.getElementById('setErr');
+        msg.classList.add('hidden');
+        err.classList.add('hidden');
+        const input = document.getElementById('logoFileInput');
+        if (!input.files || !input.files[0]) {
+          err.textContent = 'Pilih file gambar logo terlebih dahulu.';
+          err.classList.remove('hidden');
+          return;
+        }
+        const fd = new FormData();
+        fd.append('logo', input.files[0]);
+        try {
+          const res = await fetch('/api/admin/logo', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal mengunggah logo');
+          input.value = '';
+          msg.textContent = 'Logo sekolah berhasil diperbarui.';
+          msg.classList.remove('hidden');
+          loadSchoolInfo();
+        } catch (ex) {
+          err.textContent = ex.message;
+          err.classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('btnResetLogo').addEventListener('click', async () => {
+        const msg = document.getElementById('setMsg');
+        const err = document.getElementById('setErr');
+        msg.classList.add('hidden');
+        err.classList.add('hidden');
+        try {
+          const res = await fetch('/api/admin/logo', { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal mengatur ulang logo');
+          msg.textContent = 'Logo dikembalikan ke logo bawaan.';
+          msg.classList.remove('hidden');
+          loadSchoolInfo();
+        } catch (ex) {
+          err.textContent = ex.message;
+          err.classList.remove('hidden');
+        }
+      });
 
       document.getElementById('settingsForm').addEventListener('submit', async e => {
         e.preventDefault();
@@ -728,7 +842,10 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              nama_aplikasi: document.getElementById('setAppName').value,
               nama_sekolah: document.getElementById('setNama').value,
+              alamat_sekolah: document.getElementById('setAlamat').value,
+              telepon_sekolah: document.getElementById('setTelp').value,
               jam_masuk_batas: document.getElementById('setMasuk').value,
               jam_pulang_mulai: document.getElementById('setPulang').value,
               cooldown_detik: Number(document.getElementById('setCooldown').value),
@@ -738,7 +855,8 @@
           });
           const data = await res.json();
           if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal menyimpan pengaturan');
-          msg.textContent = 'Pengaturan berhasil disimpan.';
+          applySchoolInfo(data.settings);
+          msg.textContent = 'Identitas sekolah dan pengaturan absensi berhasil disimpan.';
           msg.classList.remove('hidden');
         } catch (ex) {
           err.textContent = ex.message;

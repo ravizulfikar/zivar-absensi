@@ -451,7 +451,11 @@ func (a *App) handleKioskRecent(w http.ResponseWriter, r *http.Request) {
 		"server_time": now.Format(time.RFC3339),
 		"tanggal":     today,
 		"settings": map[string]any{
+			"nama_aplikasi":    settings.NamaAplikasi,
 			"nama_sekolah":     settings.NamaSekolah,
+			"alamat_sekolah":   settings.AlamatSekolah,
+			"telepon_sekolah":  settings.TeleponSekolah,
+			"logo_url":         settings.LogoURL,
 			"jam_masuk_batas":  settings.JamMasukBatas,
 			"jam_pulang_mulai": settings.JamPulangMulai,
 		},

@@ -126,7 +126,7 @@ func (a *App) handleAdminSaveCard(w http.ResponseWriter, r *http.Request, _ *Ses
 		return
 	}
 
-	rfid := strings.ToUpper(strings.TrimSpace(req.RFIDUID))
+	rfid := normalizeRFID(req.RFIDUID)
 	var rfidArg any
 	if rfid == "" {
 		rfidArg = nil
@@ -137,7 +137,7 @@ func (a *App) handleAdminSaveCard(w http.ResponseWriter, r *http.Request, _ *Ses
 		err := a.db.QueryRowContext(ctx,
 			`SELECT c.id_siswa, COALESCE(s.nama_lengkap,'') FROM tb_absensi_kartu c
 			 INNER JOIN `+a.schema.StudentsTable+` s ON s.id_siswa = c.id_siswa
-			 WHERE UPPER(c.rfid_uid) = ? AND c.id_siswa <> ? LIMIT 1`, rfid, req.IDSiswa).Scan(&ownerID, &ownerName)
+			 WHERE REPLACE(REPLACE(REPLACE(UPPER(c.rfid_uid),':',''),'-',''),' ','') = ? AND c.id_siswa <> ? LIMIT 1`, rfid, req.IDSiswa).Scan(&ownerID, &ownerName)
 		if err == nil {
 			writeJSON(w, http.StatusConflict, map[string]any{
 				"ok":    false,

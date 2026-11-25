@@ -57,9 +57,13 @@
 
         <div class="kiosk-meta-row">
           <span class="rule-pill" id="ruleInfo">Batas masuk: 07:00 · Mulai pulang: 14:00</span>
-          <button type="button" class="btn btn-sm" id="btnToggleCamera">📷 Aktifkan Kamera QR</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-sm" id="btnToggleNFC">📡 Aktifkan NFC Android</button>
+            <button type="button" class="btn btn-sm" id="btnToggleCamera">📷 Aktifkan Kamera QR</button>
+          </div>
         </div>
 
+        <div id="nfcStatus" class="alert alert-info hidden" style="margin-top:12px;"></div>
         <div id="cameraError" class="alert alert-warn hidden" style="margin-top:12px;"></div>
         <div id="cameraBox" class="camera-box hidden">
           <video id="cameraVideo" playsinline muted></video>
@@ -122,6 +126,8 @@
       const resName = document.getElementById('resName');
       const resMeta = document.getElementById('resMeta');
       const btnSound = document.getElementById('btnSound');
+      const btnToggleNFC = document.getElementById('btnToggleNFC');
+      const nfcStatus = document.getElementById('nfcStatus');
       const btnToggleCamera = document.getElementById('btnToggleCamera');
       const btnStopCamera = document.getElementById('btnStopCamera');
       const cameraBox = document.getElementById('cameraBox');
@@ -130,6 +136,13 @@
 
       let currentMode = 'auto';
       let soundEnabled = true;
+      let scanInFlight = false;
+      let autoSubmitTimer = null;
+      let lastKeyAt = 0;
+      let fastKeyCount = 0;
+      let nfcAbort = null;
+      let lastNfcUid = '';
+      let lastNfcTime = 0;
       let cameraStream = null;
       let cameraTimer = null;
       let lastQRCode = '';
@@ -191,7 +204,10 @@
 
       async function submitScan(kode, metode) {
         const trimmed = (kode || '').trim();
-        if (!trimmed) return;
+        if (!trimmed || scanInFlight) return;
+        if (autoSubmitTimer) { clearTimeout(autoSubmitTimer); autoSubmitTimer = null; }
+        fastKeyCount = 0;
+        scanInFlight = true;
         btnSubmitScan.disabled = true;
         try {
           const res = await fetch('/api/kiosk/scan', {
@@ -214,6 +230,7 @@
             pesan: 'Tidak dapat terhubung ke server absensi. Periksa koneksi jaringan sekolah.'
           });
         } finally {
+          scanInFlight = false;
           btnSubmitScan.disabled = false;
           scanInput.value = '';
           scanInput.focus();
@@ -254,6 +271,84 @@
         e.preventDefault();
         submitScan(scanInput.value, 'auto');
       });
+
+      // Auto-submit otomatis saat reader RFID/QR USB selesai mengetik (tanpa harus klik tombol Catat)
+      scanInput.addEventListener('input', () => {
+        const now = Date.now();
+        if (now - lastKeyAt < 90) fastKeyCount++;
+        else fastKeyCount = 1;
+        lastKeyAt = now;
+
+        if (autoSubmitTimer) clearTimeout(autoSubmitTimer);
+        const val = scanInput.value.trim();
+        if (!val) return;
+
+        // 1. Jika format token QR ABS55-... langsung terbaca utuh -> otomatis catat
+        if (/^ABS55-[A-Z0-9]+-[A-F0-9]{8}$/i.test(val)) {
+          autoSubmitTimer = setTimeout(() => submitScan(scanInput.value, 'qr'), 120);
+          return;
+        }
+        // 2. Jika input masuk cepat seperti reader USB RFID/QR/NFC Keyboard (minimal 6 karakter) -> otomatis catat
+        if (val.length >= 6 && fastKeyCount >= 4) {
+          autoSubmitTimer = setTimeout(() => submitScan(scanInput.value, 'auto'), 220);
+        }
+      });
+
+      // Web NFC Android (mendukung kartu e-Money, Flazz, BRIZZI, TapCash, MIFARE 13.56MHz)
+      function normalizeUid(serial) {
+        return String(serial || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      }
+
+      async function toggleNFC() {
+        if (nfcAbort) {
+          nfcAbort.abort();
+          nfcAbort = null;
+          btnToggleNFC.textContent = '📡 Aktifkan NFC Android';
+          nfcStatus.classList.add('hidden');
+          return;
+        }
+        nfcStatus.className = 'alert alert-warn';
+        if (!('NDEFReader' in window)) {
+          nfcStatus.textContent = 'Web NFC hanya tersedia di Google Chrome Android (versi 89+) melalui koneksi HTTPS. Di PC/HTTP gunakan Reader USB RFID.';
+          nfcStatus.classList.remove('hidden');
+          return;
+        }
+        try {
+          nfcAbort = new AbortController();
+          const ndef = new NDEFReader();
+          await ndef.scan({ signal: nfcAbort.signal });
+          btnToggleNFC.textContent = '📡 NFC Aktif (Matikan)';
+          nfcStatus.className = 'alert alert-ok';
+          nfcStatus.textContent = 'NFC Android aktif! Tempelkan kartu e-Money / RFID siswa ke belakang HP untuk absen otomatis.';
+          nfcStatus.classList.remove('hidden');
+
+          ndef.addEventListener('reading', (event) => {
+            const uid = normalizeUid(event.serialNumber);
+            if (!uid) return;
+            const now = Date.now();
+            if (uid === lastNfcUid && now - lastNfcTime < 2500) return;
+            lastNfcUid = uid;
+            lastNfcTime = now;
+            submitScan(uid, 'rfid');
+          }, { signal: nfcAbort.signal });
+
+          ndef.addEventListener('readingerror', () => {
+            renderResult({
+              ok: false,
+              hasil: 'error',
+              pesan: 'Kartu NFC gagal terbaca. Tahan kartu 1 detik di belakang HP lalu coba lagi.'
+            });
+          }, { signal: nfcAbort.signal });
+        } catch (err) {
+          nfcAbort = null;
+          btnToggleNFC.textContent = '📡 Aktifkan NFC Android';
+          nfcStatus.className = 'alert alert-warn';
+          nfcStatus.textContent = 'Gagal mengaktifkan NFC: pastikan NFC HP menyala, izinkan akses NFC di Chrome, dan halaman dibuka lewat HTTPS.';
+          nfcStatus.classList.remove('hidden');
+        }
+      }
+
+      btnToggleNFC.addEventListener('click', toggleNFC);
 
       async function startCamera() {
         cameraError.classList.add('hidden');

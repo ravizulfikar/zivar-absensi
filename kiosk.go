@@ -303,6 +303,14 @@ func (a *App) handleKioskScan(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func normalizeRFID(s string) string {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	s = strings.ReplaceAll(s, ":", "")
+	s = strings.ReplaceAll(s, "-", "")
+	s = strings.ReplaceAll(s, " ", "")
+	return s
+}
+
 func (a *App) lookupStudentByCode(ctx context.Context, kode, reqMetode string, allowNIS bool) (*StudentBrief, string, string, error) {
 	stuTbl := a.schema.StudentsTable
 	clsTbl := a.schema.ClassesTable
@@ -329,9 +337,12 @@ func (a *App) lookupStudentByCode(ctx context.Context, kode, reqMetode string, a
 	}
 
 	if reqMetode == "rfid" || reqMetode == "auto" {
-		s, cs, err := queryCard("UPPER(c.rfid_uid) = UPPER(?)", kode)
-		if err != nil || s != nil {
-			return s, cs, "rfid", err
+		norm := normalizeRFID(kode)
+		if norm != "" {
+			s, cs, err := queryCard("REPLACE(REPLACE(REPLACE(UPPER(c.rfid_uid),':',''),'-',''),' ','') = ?", norm)
+			if err != nil || s != nil {
+				return s, cs, "rfid", err
+			}
 		}
 	}
 
